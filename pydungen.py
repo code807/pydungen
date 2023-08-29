@@ -69,6 +69,9 @@ class vec2():
         self.x = round(self.x)
         self.y = round(self.y)
         return self
+    
+    def area(self):
+        return self.x*self.y
 
 def nopaths(cell):
     return len(cell.paths) == 0
@@ -80,6 +83,9 @@ class cell():
         self.paths = []
         self.isRoom = False
     pass
+
+def maybe(percent=50):
+    return random.randrange(100) < percent
 
 def gridgen(size):
     grid = {}
@@ -99,7 +105,7 @@ def gridgen(size):
                     working.connections.append(pos+offset)
     return grid
 
-def recursivepath(grid):
+def recursivemaze(grid):
     path = [vec2(0, 0)]
     while len(path) > 0:
         cursor = path[-1]
@@ -113,7 +119,58 @@ def recursivepath(grid):
         grid[goto].paths.append(cursor)
         path.append(goto)
 
-def print2d(grid):
+def randomrooms(max_size, dungeonsize):
+    workingregions = [[vec2(0, 0), dungeonsize]]
+    finsihedregions = []
+    numo = 0
+    while len(workingregions) > 0:
+        """
+        print("Working on:")
+        [print(x) for x in workingregions]
+        print("Finished:")
+        [print(x) for x in finsihedregions]
+        print()
+        """
+        numo += 1
+        region = workingregions[0]
+        pos = region[0]
+        size = region[1]
+        if maybe(1):
+            vh = maybe(50)
+            if size.x > 3:
+                if vh:
+                    splitpoint = random.randint(0, size.x-1)
+                    newregions = [
+                        [pos, vec2(splitpoint+1, size.y)],
+                        [pos+vec2(splitpoint+1, 0), size-vec2(splitpoint+1, 0)]
+                    ]
+                    workingregions.pop(0)
+                    for region in newregions:
+                        workingregions.append(region)
+                    continue
+            if size.y > 3:
+                if not vh:
+                    splitpoint = random.randint(0, size.y-1)
+                    newregions = [
+                        [pos, vec2(size.x, splitpoint+1)],
+                        [pos+vec2(0, splitpoint+1), size-vec2(0, splitpoint+1)]
+                    ]
+                    workingregions.pop(0)
+                    for region in newregions:
+                        workingregions.append(region)
+                    continue
+        if size.y <= max_size.y and size.x <= max_size.x:
+            if maybe(30):
+                finsihedregions.append(workingregions.pop(0))
+        """
+        else:
+            print(str(size)+" was not less than "+str(max_size))
+        """
+    return finsihedregions
+
+    
+
+def mazeto2d(grid):
     draw = []
     drawgrid = []
     xmin = 0
@@ -134,16 +191,33 @@ def print2d(grid):
             mid = ((pos*2+path*2)/2).round()
             draw.append(mid)
     for y in range(ymax-ymin):
-        row = ["-" for x in range(xmax-xmin)]
+        row = [" " for x in range(xmax-xmin)]
         drawgrid.append(row)
     for call in draw:
-        drawgrid[call.y][call.x] = "x"
+        drawgrid[call.y][call.x] = "▒"
         # drawgrid[call.y].replace(call.x,"x")
+    """
     for row in drawgrid:
         print("".join(row))
+    """
+    return drawgrid
 
 
-dungeonsize = vec2(5, 6)
+dungeonsize = vec2(24, 24)
 dungeon = gridgen(dungeonsize)
-recursivepath(dungeon)
-print2d(dungeon)
+recursivemaze(dungeon)
+drawgrid = mazeto2d(dungeon)
+rooms = randomrooms(vec2(8, 8), dungeonsize)
+
+random.shuffle(rooms)
+for room in rooms:
+    if room[1].x > 2 and room[1].y > 2:
+        # if maybe(100):
+        pos = room[0]
+        size = room[1]
+        for y in range(size.y*2-1):
+            for x in range(size.x*2-1):
+                drawgrid[pos.y*2+y][pos.x*2+x] = "▒"
+
+for row in drawgrid:
+    print("".join(row))
