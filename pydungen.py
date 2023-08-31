@@ -194,7 +194,7 @@ def mazeto2d(grid):
         row = [" " for x in range(xmax-xmin)]
         drawgrid.append(row)
     for call in draw:
-        drawgrid[call.y][call.x] = "▒"
+        drawgrid[call.y][call.x] = "X"
         # drawgrid[call.y].replace(call.x,"x")
     """
     for row in drawgrid:
@@ -217,7 +217,7 @@ for room in rooms:
         size = room[1]
         for y in range(size.y*2-1):
             for x in range(size.x*2-1):
-                drawgrid[pos.y*2+y][pos.x*2+x] = "▒"
+                drawgrid[pos.y*2+y][pos.x*2+x] = "X"
 
 for row in drawgrid:
     print("".join(row))
